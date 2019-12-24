@@ -1,12 +1,14 @@
-from flask import Flask
+from flask import Flask, render_template,request
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisisasecret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:\\Users\\COCO\\PycharmProjects\\Flask-Login-App\\login.db'
-
 login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'You can\'t access that page. you need to login first'
+
 db = SQLAlchemy(app)
 
 
@@ -20,11 +22,17 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    user = User.query.filter_by(username='Anthony').first()
-    login_user(user)
-    return '<h1>Logged In!</h1>'
+    if request.method == 'POST':
+        username = request.form['username']
+        user = User.query.filter_by(username=username).first()
+
+        if not user:
+            return 'User does not exist!'
+
+        login_user(user)
+    return render_template('login.html')
 
 
 @app.route('/home')
